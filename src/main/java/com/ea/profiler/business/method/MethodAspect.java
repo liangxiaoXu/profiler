@@ -5,6 +5,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
@@ -20,20 +21,30 @@ import java.lang.reflect.Method;
 public class MethodAspect {
 
     /**
+     * 定义公共的pointcut 切点
+     */
+
+    @Pointcut( "execution(* com.ea.trade.controller.order.GoodOrderController.getOrderDetails(..))" )
+    public void mypoint(){ } //用来标注切入点的方法，必须是一个空方法
+
+    /**
      * 环绕所有的方法
      * @param pjp
      * @return
      * @throws Throwable
      */
-    @Around( "execution(* com.ea.trade.controller.order.GoodOrderController.getOrderDetails(..))" )
-//    @Around( "@annotation( UMPMonitor ) " )
-    public Object around(ProceedingJoinPoint pjp ) throws Throwable{
-
+    @Around( "mypoint()" )
+    public Object around( ProceedingJoinPoint pjp ) throws Throwable{
         //获取注解中的标识（方法名称）
         String methodName = getMethodName( pjp );
 
         long beginTime = System.currentTimeMillis() ;
-        Object result = pjp.proceed();
+        Object result = null ;
+        try{
+            result = pjp.proceed();
+        }catch (Exception e){
+            System.out.println("方法:" + methodName + "抛出异常，异常信息: " + e.getMessage() );
+        }
         long endTime = System.currentTimeMillis() ;
         System.out.println( "方法:" + methodName + ", 运行时间:" + (endTime - beginTime) + "毫秒" + "" );
 
@@ -72,6 +83,12 @@ public class MethodAspect {
         return methodName ;
 
     }
+
+
+     /*@AfterThrowing( pointcut = "mypoint()", throwing="ex" )
+    public void afterThrowing( Throwable ex  ) throws NoSuchMethodException, ClassNotFoundException {
+        System.out.println("方法:" *//*+ methodName*//* + "抛出异常，异常信息: " + ex.getMessage() );
+    }*/
 
 
 }
