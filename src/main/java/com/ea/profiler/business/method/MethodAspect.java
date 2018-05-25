@@ -1,5 +1,7 @@
 package com.ea.profiler.business.method;
 
+import com.ea.profiler.exception.UMPMonitorException;
+import com.ea.profiler.exception.bean.UMPException;
 import com.ea.profiler.service.UMPMonitor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -19,6 +21,7 @@ import java.lang.reflect.Method;
 @Aspect
 @Component
 public class MethodAspect {
+
 
     /**
      * 定义公共的pointcut 切点
@@ -42,9 +45,12 @@ public class MethodAspect {
         Object result = null ;
         try{
             result = pjp.proceed();
-        }catch (Exception e){
-            System.out.println("方法:" + methodName + "抛出异常，异常信息: " + e.getMessage() );
+        }catch (UMPException e){
+            System.out.println( "方法:" + methodName + "程序逻辑异常，异常信息: " + e.getMessage() );
+        }catch (Throwable t){
+            System.out.println( "方法:" + methodName + "发现其他异常，异常信息: " + t.getMessage() );
         }
+
         long endTime = System.currentTimeMillis() ;
         System.out.println( "方法:" + methodName + ", 运行时间:" + (endTime - beginTime) + "毫秒" + "" );
 
