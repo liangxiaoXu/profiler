@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -27,7 +28,9 @@ public class MethodAspect {
      * 定义公共的pointcut 切点
      */
 
-    @Pointcut( "execution(* com.ea.trade.controller.order.GoodOrderController.getOrderDetails(..))" )
+//    @Pointcut( "execution(* com.ea.trade.controller.order.GoodOrderController.getOrderDetails(..))" ) //OK
+//    @Pointcut( "execution(* com.ea..*.*(..))" ) // 启动报错
+    @Pointcut( " execution( * com..*Controller.*(..) ) || execution(* com..*ServiceImpl.*(..) ) " ) // 切入com包下所有以Controller结尾的类中所有方法 或者 com包下所有以ServiceImpl结尾的类的所有方法
     public void mypoint(){ } //用来标注切入点的方法，必须是一个空方法
 
     /**
@@ -41,8 +44,10 @@ public class MethodAspect {
         //获取注解中的标识（方法名称）
         String methodName = getMethodName( pjp );
 
-        long beginTime = System.currentTimeMillis() ;
         Object result = null ;
+
+
+        long beginTime = System.currentTimeMillis() ;
         try{
             result = pjp.proceed();
         }catch (UMPException e){
@@ -52,9 +57,15 @@ public class MethodAspect {
         }
 
         long endTime = System.currentTimeMillis() ;
-        System.out.println( "方法:" + methodName + ", 运行时间:" + (endTime - beginTime) + "毫秒" + "" );
+
+        if( methodName != null && !StringUtils.isEmpty(methodName) ){
+            System.out.println( "方法:" + methodName + ", 运行时间:" + (endTime - beginTime) + "毫秒" + "" );
+        }else{
+            System.out.println(" 方法没有使用 UMPMonitor 注解 ");
+        }
 
         //TODO 将方法名称、耗时、等信息 批量MQ发送给负责统计的系统。
+
 
         return result;
     }
