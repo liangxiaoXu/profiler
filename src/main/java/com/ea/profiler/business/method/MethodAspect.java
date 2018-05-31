@@ -25,12 +25,22 @@ public class MethodAspect {
 
 
     /**
+     * 可以抓取到 spring配置的内容
+     */
+//    @Value("${mq.nameSrvAddr}")
+//    private String nameSrvAddr;
+
+    /**
      * 定义公共的pointcut 切点
      */
 
 //    @Pointcut( "execution(* com.ea.trade.controller.order.GoodOrderController.getOrderDetails(..))" ) //OK
 //    @Pointcut( "execution(* com.ea..*.*(..))" ) // 启动报错
-    @Pointcut( " execution( * com..*Controller.*(..) ) || execution(* com..*ServiceImpl.*(..) ) " ) // 切入com包下所有以Controller结尾的类中所有方法 或者 com包下所有以ServiceImpl结尾的类的所有方法
+//    @Pointcut( executionStr ) // 使用spring注入方式读取切点表达式，经验证 不通过
+//    @Pointcut( " execution( * com..*Controller.*(..) ) || execution(* com..*ServiceImpl.*(..) ) " ) // 切入com包下所有以Controller结尾的类中所有方法 或者 com包下所有以ServiceImpl结尾的类的所有方法
+//    @Pointcut( " execution( * com..*"+"Controller"+".*(..) ) || execution(* com..*"+"ServiceImpl"+".*(..) ) " ) // 使用String字符串拼接切点表达式，经验证OK
+
+    @Pointcut( " within( com..* ) && @annotation(com.ea.profiler.service.UMPMonitor) " ) // 切入com包以及所有子包下面的所有方法中待 @UMPMonitor注解的方法(实现类和接口都需要加上@UMPMonitor注解才能生效)
     public void mypoint(){ } //用来标注切入点的方法，必须是一个空方法
 
     /**
@@ -44,6 +54,7 @@ public class MethodAspect {
         //获取注解中的标识（方法名称）
         String methodName = getMethodName( pjp );
 
+//        System.out.println("nameSrvAddr:" + nameSrvAddr);
         Object result = null ;
 
 
