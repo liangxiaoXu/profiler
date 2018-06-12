@@ -1,5 +1,6 @@
 package com.ea.profiler.business.method;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ea.profiler.exception.UMPMonitorException;
 import com.ea.profiler.exception.bean.UMPException;
 import com.ea.profiler.service.UMPMonitor;
@@ -9,6 +10,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -23,6 +26,9 @@ import java.lang.reflect.Method;
 @Component
 public class MethodAspect {
 
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 可以抓取到 spring配置的内容
@@ -77,8 +83,25 @@ public class MethodAspect {
 
         //TODO 将方法名称、耗时、等信息 批量MQ发送给负责统计的系统。
 
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put( "methodName", methodName );
+        jsonObject.put( "exeMillisecond", endTime - beginTime );
+        uploadMsg(jsonObject);
 
         return result;
+    }
+
+    /**
+     * 发送消息到MQ
+     * TODO 后期改为线程池批量实现
+     * @param msgJson
+     */
+    public void uploadMsg( JSONObject msgJson ){
+        try{
+            rabbitTemplate.convertAndSend("UMP_METHOD_MONITOR",msgJson);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
