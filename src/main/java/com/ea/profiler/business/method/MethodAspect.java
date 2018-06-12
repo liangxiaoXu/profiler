@@ -1,9 +1,9 @@
 package com.ea.profiler.business.method;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ea.profiler.exception.UMPMonitorException;
 import com.ea.profiler.exception.bean.UMPException;
 import com.ea.profiler.service.UMPMonitor;
+import com.ea.profiler.utils.IpUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -12,6 +12,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +30,9 @@ public class MethodAspect {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Value("${ump.system_name}")
+    private String systemName;
 
     /**
      * 可以抓取到 spring配置的内容
@@ -86,6 +90,8 @@ public class MethodAspect {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put( "methodName", methodName );
         jsonObject.put( "exeMillisecond", endTime - beginTime );
+        jsonObject.put( "systemName", systemName );
+        jsonObject.put( "ip", IpUtils.getLocalIp() );
         uploadMsg(jsonObject);
 
         return result;
