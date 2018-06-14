@@ -66,15 +66,17 @@ public class MethodAspect {
 
 //        System.out.println("nameSrvAddr:" + nameSrvAddr);
         Object result = null ;
-
+        String exceptionInfo = null;
 
         long beginTime = System.currentTimeMillis() ;
         try{
             result = pjp.proceed();
         }catch (UMPException e){
             System.out.println( "方法:" + methodName + "程序逻辑异常，异常信息: " + e.getMessage() );
+            exceptionInfo = e.getMessage();
         }catch (Throwable t){
             System.out.println( "方法:" + methodName + "发现其他异常，异常信息: " + t.getMessage() );
+            exceptionInfo = t.getMessage();
         }
 
         long endTime = System.currentTimeMillis() ;
@@ -92,6 +94,7 @@ public class MethodAspect {
         jsonObject.put( "exeMillisecond", endTime - beginTime );
         jsonObject.put( "systemName", systemName );
         jsonObject.put( "ip", IpUtils.getLocalIp() );
+        jsonObject.put( "exceptionInfo", exceptionInfo );
         uploadMsg(jsonObject);
 
         return result;
